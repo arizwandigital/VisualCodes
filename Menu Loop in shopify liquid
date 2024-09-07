@@ -1,0 +1,57 @@
+{% comment %} <!-- Loop throgh to find parent menu item of currently selected collection --> {% endcomment %} 
+{% assign match_title = collection.title | downcase | replace: ' ', '-' | replace: '&amp; ', '' %}
+{% assign match_url = '/collections/' | append: collection.handle %}
+{% assign parent_1 = '' %}
+{% assign parent_url = '' %} 
+{% for level1 in linklists.new-main-menu.links %}
+  {% if level1.handle == match_title or level1.url == match_url %}
+    {% assign parent_1 = level1.title %}
+    {% assign parent_url = level1.url %} 
+      {% else %}
+        {% for level2 in level1.links %}
+          {% if level2.handle == match_title or level2.url == match_url %}
+            {% assign parent_1 = level1.title %}   
+            {% assign parent_url = level1.url %} 
+              {% else %} 
+                {% for level3 in level2.links %}
+                  {% if level3.handle == match_title or level3.url == match_url %}
+                    {% assign parent_1 = level1.title %}
+                    {% assign parent_url = level1.url %} 
+                  {% endif %}
+                {% endfor%}
+            {% endif %}
+         {% endfor %}    
+    {% endif %}
+    {% if parent_1 != empty or parent_url != empty %}
+      {% break %}
+    {% endif %}
+{% endfor %}
+{% comment %} <!-- End Loop throgh to find parent menu item of currently selected collection -->    {% endcomment %}
+
+
+{% comment %} <!-- Loop throgh to check if the filter tag is from the curretnly selected menu item and then hide that filter tag -->{% endcomment %}
+                       {% assign value_lower = filter_value.value | downcase | replace: '&amp; ', '' %}
+                        {% assign selected_item = parent_1 %}
+                        {% assign submenu_items_string = "" %}
+                        {% for item in linklists.new-main-menu.links %} 
+                          {% if item.title == selected_item or item.url == parent_url %}
+                              {% assign submenu_items_string = submenu_items_string | append: item.title | downcase | append: ',' %}
+                              {% assign submenu_items_string = submenu_items_string | append: item.url | downcase | remove: '/collections/' | remove: '/pages/' | replace: '-', ' ' | append: ',' %}   
+                            {% for subitem in item.links %}
+                              {% if subitem.title == selected_item %}
+                              {% endif %}
+                              {% assign submenu_items_string = submenu_items_string | append: subitem.title | downcase | append: ',' %}
+                              {% assign submenu_items_string = submenu_items_string | append: subitem.url | downcase | remove: '/collections/' | remove: '/pages/' | replace: '-', ' ' | append: ',' %}
+                              {% if subitem.links.size > 0 %}
+                                {% for subsubitem in subitem.links %}
+                                  {% assign submenu_items_string = submenu_items_string | append: subsubitem.title | downcase | append: ',' %}
+                                  {% assign submenu_items_string = submenu_items_string | append: subsubitem.url | downcase | remove: '/collections/' | remove: '/pages/' | replace: '-', ' ' | append: ',' %}
+                                {% endfor %}
+                              {% endif %}
+                            {% endfor %}
+                          {% endif %}
+                        {% endfor %}                                 
+                        {%- assign submenu_items = submenu_items_string | split: ',' -%}
+         {% comment %} <!-- end loop through conditions --> {% endcomment %}
+                            <li class="{% for submenu_item in submenu_items %}{% if submenu_item == value_lower %}hide {% endif %}{% endfor %} Demotag tag{% if filter_value.active %} tag--active{% endif %}{% if is_color %} tag--swatch {% if enable_swatch_labels %}tag--show-label{% endif %}{% endif %}{% if filter_value.count == 0 %} hide{% endif %}">
+   
